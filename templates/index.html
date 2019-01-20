@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<!--header-->
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- Meta, title, CSS, favicons, etc. -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Index | </title>
+   <!-- jQuery -->
+    <!--<script src="[[ url_for('static', filename='vendors/jquery/dist/jquery.min.js') ]]"></script>-->
+    <script src="[[ url_for('static', filename='fullscreen.css') ]]"></script>
+    <script
+			  src="https://code.jquery.com/jquery-1.12.4.min.js"
+			  integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ="
+			  crossorigin="anonymous"></script>
+    <!-- Angularjs -->
+    <script src="[[ url_for('static', filename='vendors/angularjs/angular.min.js') ]]"></script>
+
+
+
+
+
+
+</head>
+<!--/header-->
+<body class="nav-md" ng-app="submitExample" ng-controller="ExampleController" ng-cloak>
+
+
+ <!--<div ng-show="show"><img  src="[[ url_for('static', filename='underattack.gif') ]]" alt="underattack" height="100%" width="100%">-->
+ <img  ng-src="../static/{{image}}" alt="" height="100%" width="100%">
+
+
+</body>
+<script>
+
+    var app = angular.module('submitExample',[]);
+    app.controller('ExampleController', ['$scope', '$log', '$http', '$location', function($scope, $log, $http, $location) {
+        $scope.id = 0;
+        $scope.results = [];
+        $scope.angle = 0;
+        $scope.distance = 0;
+        $scope.samples = 0;
+        $scope.total = 0;
+        $scope.finished = '';
+        $scope.scale = 10;
+        $scope.current_sample = [];
+        $scope.angle_input = 0;
+        $scope.error = 0;
+        $scope.pause = false;
+        $scope.show = false;
+        $scope.image = 'protected.png';
+
+
+
+        // Lấy dữ liệu theo thời gian thực
+        function get_data() {
+            // fire the API request
+            $http({
+                method: 'post',
+                url: '/get_data_api',
+                data: {},
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).
+            then(function(response) {
+                $scope.results = response.data;
+                if(response.data=='false'){
+                    $scope.image = 'protected.png';
+                }
+                if(response.data=='true'){
+                    $scope.image = 'underattack.gif';
+                }
+
+            }, function(response) {
+                results = response.data || 'Request failed';
+            })
+        };
+
+        window.setInterval(function(){
+            get_data();
+
+        }, 1000);
+
+
+        }])
+
+
+
+</script>
+
+</html>
