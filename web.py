@@ -3,6 +3,7 @@ from flask import *
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.datasets import make_classification
 from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.tree import DecisionTreeClassifier
 from sklearn import svm
 import pickle
 import time
@@ -10,6 +11,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time, os
 from joblib import dump, load
+
+FILE_LOCATION = '../Botvac-Control/ldscan_current.pkl'
 
 IGNORE_ANGLES = [25, 26, 27, 28, 29, 30, 31, 38, 39, 40, 41, 50, 51, 52, 53, 54, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65,
                  85, 86, 87, 88, 89, 90, 91, 97, 98, 122, 126, 127, 128, 129, 130, 131, 132, 133, 136, 137, 139, 140,
@@ -24,17 +27,9 @@ IGNORE_ANGLES = [25, 26, 27, 28, 29, 30, 31, 38, 39, 40, 41, 50, 51, 52, 53, 54,
                  49, 2, 34, 282, 333, 268, 301, 67, 33, 250, 92, 302, 74, 334, 100, 313, 36, 45, 293, 324, 3, 95, 317,
                  4, 319, 99, 124, 35, 303, 316, 336, 96, 101, 255, 286, 304]
 
-IGNORE_ANGLES1 = []
-
-IGNORE_ANGLES2 = []
-
-IGNORE_ANGLES = IGNORE_ANGLES + IGNORE_ANGLES1 + IGNORE_ANGLES2
-
 
 class LidarScan:
-
     def __init__(self, ldscan):
-
         self.distances = []
         self.intensities = []
         self.errors = []
@@ -82,33 +77,32 @@ class Data:
                 self._scans.append(scan)
 
         if name == 'mal_7':
-            for i in range(1975, int(1975 + (2101 - 1975) / 2)):
+            for i in range(1975, 2038):
                 filename = 'mal_7/ldscan' + str(i) + '.pkl'
                 scan = read_file(filename)
                 self._scans.append(scan)
 
         if name == 'mal_7_test':
-            for i in range(int(1975 + (2101 - 1975) / 2), 2101):
+            for i in range(2039, 2101):
                 filename = 'mal_7/ldscan' + str(i) + '.pkl'
                 scan = read_file(filename)
                 self._scans.append(scan)
 
         if name == 'benign_7':
-            for i in range(11, int(11 + (1310 - 11) / 2)):
+            for i in range(11, 650):
                 filename = 'benign_7/ldscan' + str(i) + '.pkl'
                 scan = read_file(filename)
                 self._scans.append(scan)
 
         if name == 'benign_7_test':
-            for i in range(int(11 + (1310 - 11) / 2), 1310):
+            for i in range(651, 1310):
                 filename = 'benign_7/ldscan' + str(i) + '.pkl'
                 scan = read_file(filename)
                 self._scans.append(scan)
 
         if name == 'current':
-            if os.path.getsize('../Botvac-Control/ldscan_current.pkl') > 0:
-                filename = '../Botvac-Control/ldscan_current.pkl'
-                scan = read_file(filename)
+            if os.path.getsize(FILE_LOCATION) > 0:
+                scan = read_file(FILE_LOCATION)
                 self._scans.append(scan)
 
 
@@ -137,12 +131,14 @@ def train():
                 train_angle.append(0)
         train_x.append(train_angle)
         train_y.append(1)
+    print(np.array(train_x))
     X = np.array(train_x)
     y = np.array(train_y)
-    # clf = RandomForestClassifier(max_depth=100, random_state=0)  # max_depth is set max
-    clf = svm.SVC()
+    clf = RandomForestClassifier(max_depth=100, random_state=0)  # max_depth is set max
+    # clf = svm.SVC()
+    # clf = DecisionTreeClassifier()
+    print(clf)
     clf.fit(X, y)
-    dump(clf, 'train.joblib')
     # def plot_decision_function(classifier, sample_weight, axis, title):
     #     # plot the decision function
     #     xx, yy = np.meshgrid(np.linspace(-4, 5, 500), np.linspace(-4, 5, 500))
@@ -239,7 +235,6 @@ print("Accuracy for classification: " + str(correct * 100 / total) + "%")
 
 # Define web
 app = Flask(__name__)
-# app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.secret_key = "fasdfsdfsdfasdfs"
 # app update
 jinja_options = app.jinja_options.copy()
@@ -249,7 +244,6 @@ jinja_options.update(dict(
 ))
 app.jinja_options = jinja_options
 
-
 # Routing index
 @app.route('/', methods=['POST', 'GET'])
 @app.route('/index', methods=['POST', 'GET'])
@@ -257,7 +251,7 @@ def index():
     return render_template('index.html')
 
 
-# API Lấy thông tin lidar
+# API getting data
 @app.route('/get_data_api', methods=['POST', 'GET'])
 def get_data_api():
     if request.method == 'POST':
