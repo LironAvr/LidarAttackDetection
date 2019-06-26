@@ -5,6 +5,8 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 from joblib import dump, load
+from sklearn.decomposition import PCA
+
 
 
 class LidarScan:
@@ -52,65 +54,85 @@ class Data:
         print(name)
 
 
-        if name == 'reflective':
-            for i in range(379, 1152):
-                filename = 'reflective/ldscan' + str(i) + '.pkl'
+        if name == 'benign_p1':
+            for i in range(2, 1452):
+                filename = 'Measurements/' + name + '/ldscan' + str(i) + '.pkl'
                 scan = read_file(filename)
                 self._scans.append(scan)
 
-        if name == 'benign_s':
-            for i in range(0, 303):
-                filename = 'benign_s/ldscan' + str(i) + '.pkl'
+        if name == 'benign_p2':
+            for i in range(2177, 3627):
+                filename = 'Measurements/' + name + '/ldscan' + str(i) + '.pkl'
                 scan = read_file(filename)
                 self._scans.append(scan)
 
-        if name == 'mal_s':
-            for i in range(305, 550):
-                filename = 'mal_s/ldscan' + str(i) + '.pkl'
+        if name == 'benign_p3':
+            for i in range(2041, 3491):
+                filename = 'Measurements/' + name + '/ldscan' + str(i) + '.pkl'
                 scan = read_file(filename)
                 self._scans.append(scan)
 
-        if name == 'benign_2':
-            for i in range(0, 108):
-                filename = 'benign_2/ldscan' + str(i) + '.pkl'
+        if name == 'benign_p4':
+            for i in range(2, 1452):
+                filename = 'Measurements/' + name + '/ldscan' + str(i) + '.pkl'
                 scan = read_file(filename)
                 self._scans.append(scan)
 
-        if name == 'mal_2':
-            for i in range(109, 226):
-                filename = 'mal_2/ldscan' + str(i) + '.pkl'
+        if name == 'benign_p5':
+            for i in range(2, 1452):
+                filename = 'Measurements/' + name + '/ldscan' + str(i) + '.pkl'
                 scan = read_file(filename)
                 self._scans.append(scan)
 
-        if name == 'mal_1':
-            for i in range(0, 113):
-                filename = 'mal_1/ldscan' + str(i) + '.pkl'
+        if name == 'mal_p1_1':
+            for i in range(2, 1452):
+                filename = 'Measurements/' + name + '/ldscan' + str(i) + '.pkl'
                 scan = read_file(filename)
                 self._scans.append(scan)
 
-        if name == 'benign_1':
-            for i in range(114, 223):
-                filename = 'benign_1/ldscan' + str(i) + '.pkl'
+        if name == 'mal_p1_2':
+            for i in range(10, 1472):
+                filename = 'Measurements/' + name + '/ldscan' + str(i) + '.pkl'
                 scan = read_file(filename)
                 self._scans.append(scan)
 
-        if name == 'mal_3':
-            for i in range(13, 124):
-                filename = 'mal_3/ldscan' + str(i) + '.pkl'
+        if name == 'mal_p2':
+            for i in range(2, 1452):
+                filename = 'Measurements/' + name + '/ldscan' + str(i) + '.pkl'
                 scan = read_file(filename)
                 self._scans.append(scan)
 
-        if name == 'current':
-            filename = 'ldscan_current.pkl'
-            scan = read_file(filename)
-            self._scans.append(scan)
+        if name == 'mal_p3':
+            for i in range(2, 1452):
+                filename = 'Measurements/' + name + '/ldscan' + str(i) + '.pkl'
+                scan = read_file(filename)
+                self._scans.append(scan)
+
+        if name == 'mal_p4':
+            for i in range(2, 1452):
+                filename = 'Measurements/' + name + '/ldscan' + str(i) + '.pkl'
+                scan = read_file(filename)
+                self._scans.append(scan)
+
+        if name == 'mal_p5':
+            for i in range(1522, 2972):
+                filename = 'Measurements/' + name + '/ldscan' + str(i) + '.pkl'
+                scan = read_file(filename)
+                self._scans.append(scan)
+
+        #if name == 'current':
+        #    filename = 'ldscan_current.pkl'
+        #    scan = read_file(filename)
+        #    self._scans.append(scan)
 
 
 def train():
     data = Data()
-    data.read_data('benign_1')
-    data.read_data('benign_2')
-    data.read_data('benign_s')
+    data.read_data('benign_p1')
+    data.read_data('benign_p2')
+    data.read_data('benign_p3')
+    data.read_data('benign_p4')
+    data.read_data('benign_p5')
     train_x = []
     train_y = []
     for i in data._scans:
@@ -118,15 +140,20 @@ def train():
             train_x.append([i.distances[j], i.errors[j], i.intensities[j]])
             train_y.append(1)
     data1 = Data()
-    data1.read_data('mal_1')
-    data1.read_data('mal_2')
-    data1.read_data('mal_s')
+    data1.read_data('mal_p1_1')
+    data1.read_data('mal_p2')
+    data1.read_data('mal_p3')
+    data1.read_data('mal_p4')
+    data1.read_data('mal_p5')
     for i in data1._scans:
         for j in range(0, 360):
             train_x.append([i.distances[j], i.errors[j], i.intensities[j]])
             train_y.append(0)
     X = np.array(train_x)
+    pca = PCA()
+    x_pca = pca.fit_transform(X)
     y = np.array(train_y)
+
     clf = RandomForestClassifier(max_depth=100, random_state=0)  # max_depth is set max
     clf.fit(X, y)
     print("Accuracy when training: " + str(clf.score(X, y)))
@@ -185,7 +212,7 @@ if __name__ == "__main__":
     #         correct += 1
     #
     data1 = Data()
-    data1.read_data('mal_3')
+    data1.read_data('mal_p2')
     for i in data1._scans:
         total += 1
         result = classify(i, train_result)
